@@ -4,7 +4,6 @@
    <strong>A BadUSB proof of concept using a Teensy 3.2 microcontroller to deploy a fileless PowerShell reverse shell on a Windows target.</strong><br>
    <em>For educational and authorized red-team use only. Do not use against systems you do not own or have explicit permission to test.</em>
 </p>
----
 
 ## How It Works
 
