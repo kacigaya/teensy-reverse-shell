@@ -98,7 +98,7 @@ Update the IP address in both files before flashing/hosting:
 ## Project Structure
 
 ```
-teensy-reverse/
+teensy-reverse-shell/
 +-- stager/
 |   +-- stager.ino     # Teensy HID keyboard injector
 +-- shell.ps1          # PowerShell reverse shell payload
