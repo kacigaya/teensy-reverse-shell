@@ -1,4 +1,4 @@
-# teensy-reverse-shell
+# Teensy Reverse Shell
 
 A BadUSB proof of concept using a Teensy 3.2 microcontroller to deploy a fileless PowerShell reverse shell on a Windows target.
 
