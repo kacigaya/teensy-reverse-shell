@@ -9,6 +9,14 @@
    <em>For educational and authorized red-team use only. Do not use against systems you do not own or have explicit permission to test.</em>
 </p>
 
+<p align="center">
+  <a href="https://www.pjrc.com/teensy/teensy32.html"><img alt="Teensy 3.2" src="https://shieldcn.dev/badge/Teensy-3.2-185190.svg?variant=secondary"></a>
+  <a href="https://www.pjrc.com/teensy/td_download.html"><img alt="Teensyduino" src="https://shieldcn.dev/badge/Arduino-Teensyduino-00979D.svg?variant=secondary&amp;logo=arduino"></a>
+  <a href="https://learn.microsoft.com/powershell/"><img alt="PowerShell 5.1+" src="https://shieldcn.dev/badge/PowerShell-5.1%2B-5391FE.svg?variant=secondary"></a>
+  <a href="https://www.microsoft.com/windows"><img alt="Windows 10/11" src="https://shieldcn.dev/badge/Windows-10%2F11-0078D4.svg?variant=secondary"></a>
+  <a href="https://github.com/kacigaya/teensy-reverse-shell/blob/main/LICENSE"><img alt="MIT License" src="https://shieldcn.dev/github/license/kacigaya/teensy-reverse-shell.svg?variant=secondary"></a>
+</p>
+
 ## How It Works
 
 The attack has two components: a Teensy sketch that acts as a HID keyboard injector, and a PowerShell reverse shell served over HTTP.
