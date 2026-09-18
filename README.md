@@ -5,7 +5,7 @@
 <h1 align="center">Teensy Reverse Shell</h1>
 
 <p align="center">
-   <strong>A BadUSB proof of concept using a Teensy 3.2 microcontroller to deploy a fileless PowerShell reverse shell on a Windows target.</strong><br>
+   <strong>BadUSB proof of concept using a Teensy 3.2 to run a fileless PowerShell reverse shell on Windows.</strong><br>
    <em>For educational and authorized red-team use only. Do not use against systems you do not own or have explicit permission to test.</em>
 </p>
 
@@ -19,19 +19,19 @@
 
 ## How It Works
 
-The attack has two components: a Teensy sketch that acts as a HID keyboard injector, and a PowerShell reverse shell served over HTTP.
+Two parts: a Teensy sketch that acts as a USB keyboard, and a PowerShell reverse shell pulled over HTTP.
 
 ### 1. HID Injection (`stager/stager.ino`)
 
-When the Teensy is plugged into a Windows machine, the OS recognizes it as a trusted USB keyboard with no driver prompt. The sketch then:
+Plug it into a Windows machine and the OS trusts it as a keyboard with no driver prompt. The sketch then:
 
-1. Waits 3 seconds for the OS to register the device
-2. Presses `Win + R` to open the Run dialog
-3. Types a PowerShell one-liner character by character (80ms per key to avoid dropped input)
-4. Presses Enter to execute
-5. After execution, opens Run again and deletes forensic traces
+1. Waits 3 seconds for the OS to recognize the device
+2. Hits `Win + R` to open the Run dialog
+3. Types the PowerShell one-liner key by key with an 80ms delay so no keystrokes get dropped
+4. Hits Enter to run it
+5. Waits 5 seconds, opens Run again, and wipes local history
 
-The payload command that gets typed:
+What gets typed:
 
 ```stager/stager.ino#L13-L15
 const char PAYLOAD[] =
@@ -42,40 +42,40 @@ const char PAYLOAD[] =
 | Flag | Purpose |
 |---|---|
 | `-w h` | Hides the PowerShell window |
-| `-nop` | Skips the user profile for faster, cleaner startup |
+| `-nop` | Skips profile scripts for faster startup and fewer side effects |
 | `-ExecutionPolicy Bypass` | Bypasses script execution restrictions |
-| `IEX` + `DownloadString` | Downloads and executes `shell.ps1` entirely in memory, nothing written to disk |
+| `IEX` + `DownloadString` | Downloads and executes `shell.ps1` in memory without touching disk |
 
 ### 2. Reverse Shell (`shell.ps1`)
 
-The script is hosted on the attacker's HTTP server and fetched at runtime. It:
+Hosted on the attacker's HTTP server and loaded straight into memory:
 
 1. Opens a TCP connection back to the attacker IP and port (`172.20.10.4:6969`)
-2. Reads commands sent over the socket in a loop
-3. Executes each command with `Invoke-Expression` and sends the output back
+2. Reads incoming commands from the socket in a loop
+3. Runs each command with `Invoke-Expression` and sends the output back
 
-Because the connection originates from the victim, it bypasses most inbound firewall rules.
+Because the target initiates an outbound connection, standard inbound firewall rules do not block it.
 
 ### 3. Cleanup
 
-After the shell connects, the Teensy injects a second Run command that silently:
+Five seconds after launching the shell, the Teensy sends a second Run command to clear traces:
 
-- Deletes the Run dialog history (`HKCU\...\Explorer\RunMRU`)
-- Deletes the PowerShell command history file (`PSReadLine\ConsoleHost_history.txt`)
+- Deletes the Run dialog history key (`HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`)
+- Deletes the PowerShell command history file (`ConsoleHost_history.txt`)
 
 ---
 
 ## Attack Chain
 
 ```
-Teensy plugged in
-  -> OS registers it as a USB keyboard
-  -> Win+R opens Run dialog
-  -> PowerShell one-liner is typed and executed (hidden window)
-  -> shell.ps1 is downloaded from attacker HTTP server and run in memory
-  -> Victim opens TCP connection back to attacker on port 6969
-  -> Attacker gets interactive shell
-  -> Teensy erases Run history and PS history
+Teensy plugged into target
+  -> OS detects device as a USB keyboard
+  -> Win + R opens Run dialog
+  -> PowerShell stager typed and run in a hidden window
+  -> shell.ps1 fetched into memory over HTTP
+  -> Target opens outbound TCP connection to port 6969
+  -> Interactive shell session established
+  -> Teensy wipes RunMRU and PSReadLine history
 ```
 
 ---
@@ -85,22 +85,25 @@ Teensy plugged in
 ### Requirements
 
 - Teensy 3.2
-- Arduino IDE with [Teensyduino](https://www.pjrc.com/teensy/td_download.html) add-on
-- Board config: `Teensy 3.2`, USB Type: `Keyboard + Mouse + Joystick`, Layout: `French (AZERTY)`
-- A machine to host `shell.ps1` over HTTP (e.g. `python3 -m http.server 8080`)
-- A TCP listener on the attacker machine (e.g. `nc -lvnp 6969`)
+- Arduino IDE with the [Teensyduino](https://www.pjrc.com/teensy/td_download.html) add-on
+- Board configuration in Arduino IDE:
+  - Board: `Teensy 3.2`
+  - USB Type: `Keyboard + Mouse + Joystick`
+  - Keyboard Layout: `French (AZERTY)` (or match the target machine)
+- HTTP server to host `shell.ps1` (e.g. `python3 -m http.server 8080`)
+- TCP listener on the attacking machine (e.g. `nc -lvnp 6969`)
 
 ### Configuration
 
-Update the IP address in both files before flashing/hosting:
+Update connection details in both files before flashing or hosting:
 
-- `stager/stager.ino`: change the URL in `PAYLOAD`
-- `shell.ps1`: change the default values of `$i` (IP) and `$p` (port)
+- `stager/stager.ino`: update the HTTP server address in `PAYLOAD`
+- `shell.ps1`: set `$i` (listener IP) and `$p` (port)
 
 ### Steps
 
 1. Start the HTTP server in the directory containing `shell.ps1`
-2. Start the TCP listener on the attacker machine
+2. Start the TCP listener on the attacking machine
 3. Flash `stager.ino` to the Teensy
 4. Plug the Teensy into the target Windows machine
 
