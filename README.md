@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="Teensy Reverse Shell logo" width="140">
+  <img src="assets/logo.png" alt="Teensy 3.2 board" width="280">
 </p>
 
 <h1 align="center">Teensy Reverse Shell</h1>
