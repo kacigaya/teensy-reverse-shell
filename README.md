@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Teensy Reverse Shell logo" width="140">
+</p>
+
 <h1 align="center">Teensy Reverse Shell</h1>
 
 <p align="center">
